@@ -1,11 +1,160 @@
+/* 共通CSS */
 html, body {
   font-family: Arial, Helvetica, sans-serif;
-  background-color: #e8e6e6;
+  background-color: #f8f8f8;
   color: #333333;
   margin: 0;
   padding: 0;
-  height: 100%;
-  overflow: hidden;
+  /* height: 100%; */
+  /* overflow: hidden; スクロール禁止 */
   text-align: center;
 
 }
+h2{
+  margin-bottom: 1rem;
+  padding: 0;
+}
+.main_page{
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #ccc;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.step.active .circle {
+  background-color: #8B4513;
+}
+
+.label {
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.arrow {
+  font-size: 1.5rem;
+  color: #8B4513;
+  margin: 0 0.5rem;
+}
+
+.submit_btn{
+  margin-top: 1rem;
+}
+
+/* order画面 */
+.info_item{
+  margin-top: 1rem;
+}
+
+.info_textfiled{
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+
+/* confrim画面 */
+.order-summary {
+  max-width: 600px;
+  margin: 2rem auto;
+  text-align: left;
+  background: #fff;
+  padding: 1rem 2rem 1rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.order-section {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 1rem;
+}
+
+.order-section h2 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #555;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+}
+
+.label {
+  font-weight: 600;
+  color: #444;
+}
+
+.value {
+  text-align: right;
+}
+
+.bold .value {
+  font-weight: bold;
+}
+
+.total-amount {
+  font-size: 1.2rem;
+  color: #8B4513;
+  font-weight: bold;
+}
+
+/* thanks画面 */
+.title {
+  font-size: 1.8rem;
+  margin: 2rem 0 1.5rem;
+  color: #8B4513;
+}
+
+.thank_you_card {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  text-align: center;
+}
+
+.con_text {
+  margin-bottom: 1.5rem;
+  line-height: 1.8;
+  color: #333;
+}
+
+.text_phone {
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+.back_btn {
+  margin-top: 2rem;
+}
+
