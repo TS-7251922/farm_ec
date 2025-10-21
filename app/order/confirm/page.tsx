@@ -5,15 +5,16 @@ import { useRouter } from 'next/navigation';
 import Button from '@mui/material/Button';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import dayjs from 'dayjs';
 
 type Order = {
-  product: string;
-  kg: number;
-  method: 'delivery' | 'pickup';
-  address: string;
-  name: string;
-  phone: string;
-  pickupDates: string[];
+  date: string;
+  trader: string;
+  polishedKg: number;
+  polishedCount: number;
+  brownKg: number;
+  brownCount: number;
+  amount: number;
   createdAt?: Date;
 };
 
@@ -28,21 +29,34 @@ export default function ConfirmPage() {
       return;
     }
     const parsedOrder = JSON.parse(savedOrder);
-    setOrder({ ...parsedOrder, createdAt: new Date() });
+
+    // 入力値が空の場合は0に変換
+    const safeOrder: Order = {
+      ...parsedOrder,
+      polishedKg: Number(parsedOrder.polishedKg) || 0,
+      polishedCount: Number(parsedOrder.polishedCount) || 0,
+      brownKg: Number(parsedOrder.brownKg) || 0,
+      brownCount: Number(parsedOrder.brownCount) || 0,
+      amount: 0,
+      createdAt: new Date(),
+    };
+    setOrder(safeOrder);
   }, [router]);
 
   if (!order) return <p>注文情報を読み込み中...</p>;
 
-  const price = order.kg * 500;
-  const shippingFee = order.method === 'delivery' ? 500 : 0;
-  const total = price + shippingFee;
+  // 精米・玄米の合計金額計算
+  const polishedTotal = order.polishedKg * order.polishedCount * 500 + order.polishedCount * 1000;
+  const brownTotal = order.brownKg * order.brownCount * 500;
+  const total = polishedTotal + brownTotal;
+
+  const orderToSave = { ...order, amount: total };
 
   const handleConfirm = async () => {
     try {
-      await addDoc(collection(db, 'orders'), order);
-      sessionStorage.setItem('orderMethod', order.method);
-      // sessionStorage.removeItem('order');
-      router.push(`/order/thanks`);
+      await addDoc(collection(db, 'orders'), orderToSave);
+      sessionStorage.removeItem('order');
+      router.push('/order/thanks');
     } catch (error) {
       console.error('注文の保存に失敗しました:', error);
       alert('注文の確定に失敗しました。');
@@ -55,91 +69,68 @@ export default function ConfirmPage() {
       <div className="step-indicator">
         <div className="step completed">
           <div className="circle">1</div>
-          <div className="label">注文入力</div>
+          <div className="label">入力</div>
         </div>
+        <div className="arrow">→</div>
         <div className="step active">
           <div className="circle">2</div>
-          <div className="label">内容確認</div>
+          <div className="label">確認</div>
         </div>
+        <div className="arrow">→</div>
         <div className="step">
           <div className="circle">3</div>
           <div className="label">完了</div>
         </div>
       </div>
 
-      <h1 className="title">注文内容の確認</h1>
+      <h1 className="title">取引内容の確認</h1>
 
       <div className="order-summary">
         <section className="order-section">
-          <h2>商品情報</h2>
+          <h2>取引情報</h2>
           <div className="info-row">
-            <span className="label">商品名：</span>
-            <span className="value">{order.product}</span>
+            <span className="form_label">取引日：</span>
+            <span className="value">{dayjs(order.date).format('YYYY年MM月D日')}</span>
           </div>
           <div className="info-row">
-            <span className="label">数量：</span>
-            <span className="value">{order.kg}kg</span>
-          </div>
-          <div className="info-row">
-            <span className="label">小計：</span>
-            <span className="value">{price.toLocaleString()}円</span>
+            <span className="form_label">取引者：</span>
+            <span className="value">{order.trader || '0'}</span>
           </div>
         </section>
 
         <section className="order-section">
-          <h2>受け取り方法</h2>
+          <h2>商品情報</h2>
           <div className="info-row">
-            <span className="label">方法：</span>
-            <span className="value">{order.method === 'delivery' ? '配送' : '農園で受け取り'}</span>
+            <span className="form_label">精米：</span>
+            <span className="value">{order.polishedKg || 0}kg × {order.polishedCount || 0}個</span>
           </div>
-          {order.method === 'delivery' && (
-            <div className="info-row">
-              <span className="label">配送先：</span>
-              <span className="value">{order.address}</span>
-            </div>
-          )}
-          {order.method === 'pickup' && (
-            <div className="info-row">
-              <span className="label">受け取り希望日：</span>
-              <span className="value">{order.pickupDates.join('、')}</span>
-            </div>
-          )}
+          <div className="info-row">
+            <span className="form_label">玄米：</span>
+            <span className="value">{order.brownKg || 0}kg × {order.brownCount || 0}個</span>
+          </div>
         </section>
-        
+
         <section className="order-section">
-          <h2>お客様情報</h2>
-          <div className="info-row">
-            <span className="label">お名前：</span>
-            <span className="value">{order.name}</span>
-          </div>
-          <div className="info-row">
-            <span className="label">電話番号：</span>
-            <span className="value">{order.phone}</span>
-          </div>
-        </section>
-        
-        <section className="order-section total">
-          <div className="info-row bold">
-            <span className="label">送料：</span>
-            <span className="value">{shippingFee.toLocaleString()}円</span>
-          </div>
           <div className="info-row total-amount">
-            <span className="label">合計金額：</span>
+            <span className="form_label">合計金額：</span>
             <span className="value">{total.toLocaleString()}円</span>
           </div>
         </section>
       </div>
-        
-      {/* 注文内容確認ボタン */}
-        <div className="submit_btn">
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleConfirm}
-          >
-            注文を確定する
-          </Button>
-        </div>
+
+      {/* 注文確定ボタン */}
+      <div className="submit_btn">
+        <Button variant="contained" color="primary" onClick={handleConfirm}>
+          注文を確定する
+        </Button>
+      </div>
+
+      {/* 修正ボタン */}
+      <div className="back_btn">
+        <Button variant="outlined" color="primary" onClick={() => router.push('/order')}>
+          内容を修正する
+        </Button>
+      </div>
     </main>
   );
 }

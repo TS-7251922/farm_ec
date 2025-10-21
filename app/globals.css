@@ -1,28 +1,39 @@
-/* 共通CSS */
+/* 共通 */
 html, body {
   font-family: Arial, Helvetica, sans-serif;
   background-color: #f8f8f8;
   color: #333333;
   margin: 0;
   padding: 0;
-  /* height: 100%; */
-  /* overflow: hidden; スクロール禁止 */
   text-align: center;
-
 }
-h2{
+
+h2 {
   margin-bottom: 1rem;
   padding: 0;
 }
-.main_page{
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+
+/* メインページ全体 */
+.main_page {
+  margin: 2rem auto;
+  padding: 0 1rem;
+  max-width: 800px;
 }
 
+.info_body{
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 50%;
+  margin: 0 auto;
+}
+
+/* ステップバー */
 .step-indicator {
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
+  margin-bottom: 2rem;
 }
 
 .step {
@@ -30,6 +41,7 @@ h2{
   flex-direction: column;
   align-items: center;
   flex: 1;
+  color: #999;
 }
 
 .circle {
@@ -45,8 +57,18 @@ h2{
   margin-bottom: 0.5rem;
 }
 
+.step.active {
+  color: #8B4513;
+  font-weight: bold;
+}
+
 .step.active .circle {
   background-color: #8B4513;
+}
+
+.step.active .label {
+  color: #8B4513;
+  font-weight: bold;
 }
 
 .label {
@@ -60,31 +82,99 @@ h2{
   margin: 0 0.5rem;
 }
 
-.submit_btn{
-  margin-top: 1rem;
+/* フォーム全体 */
+.on_submit {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  text-align: center;
 }
 
-/* order画面 */
-.info_item{
-  margin-top: 1rem;
-}
-
-.info_textfiled{
-  width: 100%;
-  padding: 0.5rem;
+/* セクション */
+.info_item {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #fafafa;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box;
+  border-radius: 8px;
 }
 
+.info_title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
 
-/* confrim画面 */
+/* 入力欄を中央寄せ＆横に広げる */
+.form_control_center {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form_control_center > * {
+  width: 100%;
+  max-width: 600px;
+}
+
+/* テキストフィールド共通 */
+.info_textfiled,
+input,
+textarea {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 1rem;
+}
+
+/* お客様情報用レイアウト */
+.info_customer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .info_customer {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .info_customer > * {
+    flex: 1;
+    max-width: 300px;
+  }
+}
+
+/* 日付選択グリッド */
+.wish_day {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  justify-items: center;
+}
+
+/* ボタン */
+.submit_btn {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+/* 確認画面 */
 .order-summary {
   max-width: 600px;
   margin: 2rem auto;
   text-align: left;
+  font-size: 1.2rem;
   background: #fff;
-  padding: 1rem 2rem 1rem 2rem;
+  padding: 1rem 2rem;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
@@ -126,7 +216,7 @@ h2{
   font-weight: bold;
 }
 
-/* thanks画面 */
+/* サンクスページ */
 .title {
   font-size: 1.8rem;
   margin: 2rem 0 1.5rem;
@@ -157,4 +247,3 @@ h2{
 .back_btn {
   margin-top: 2rem;
 }
-
