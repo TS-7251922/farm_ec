@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
+import HomeIcon from '@mui/icons-material/Home'; // 🏠 ホームアイコン
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'; // ➕ 追加アイコン
 
 type Order = {
   method: 'delivery' | 'pickup';
@@ -12,18 +14,17 @@ export default function ThanksPage() {
   const [method, setMethod] = useState<'delivery' | 'pickup' | null>(null);
 
   useEffect(() => {
-  const savedOrder = sessionStorage.getItem('order');
-  if (savedOrder) {
-    const parsed: Order = JSON.parse(savedOrder);
-    setMethod(parsed.method);
-  } else {
-    const fallback = sessionStorage.getItem('orderMethod');
-    if (fallback === 'delivery' || fallback === 'pickup') {
-      setMethod(fallback);
+    const savedOrder = sessionStorage.getItem('order');
+    if (savedOrder) {
+      const parsed: Order = JSON.parse(savedOrder);
+      setMethod(parsed.method);
+    } else {
+      const fallback = sessionStorage.getItem('orderMethod');
+      if (fallback === 'delivery' || fallback === 'pickup') {
+        setMethod(fallback);
+      }
     }
-  }
-}, []);
-
+  }, []);
 
   return (
     <main className="main_page">
@@ -44,15 +45,44 @@ export default function ThanksPage() {
           <div className="label">完了</div>
         </div>
       </div>
+
       <h2 className="title">取引情報の登録完了しました。</h2>
+
       <div className="thank_you_card">
         <p>管理者画面にてご確認ください。</p>
 
-        <Link href="/order" passHref>
-          <Button variant="outlined" color="primary" className="back_btn">
-            さらに登録する→
-          </Button>
-        </Link>
+        {/* ボタンを縦並びに中央配置 */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            marginTop: '24px',
+            alignItems: 'center',
+          }}
+        >
+          <Link href="/order" passHref>
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<AddCircleOutlineIcon />} // ← 左に表示
+              className="back_btn"
+            >
+              さらに登録する
+            </Button>
+          </Link>
+
+          <Link href="/control" passHref>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<HomeIcon />} // ← 左に表示
+              className="admin_btn"
+            >
+              管理者画面に戻る
+            </Button>
+          </Link>
+        </div>
       </div>
     </main>
   );

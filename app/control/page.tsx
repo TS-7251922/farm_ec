@@ -5,10 +5,12 @@ import {
   Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText,
   Toolbar, Typography, Card, CardContent, LinearProgress,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Select, MenuItem, FormControl, InputLabel
+  Paper, Select, MenuItem, FormControl, InputLabel, Button
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import HistoryIcon from '@mui/icons-material/History';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import { useRouter } from 'next/navigation';
 
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
@@ -33,11 +35,11 @@ export default function AdminPage() {
   const [percentage, setPercentage] = useState<number>(0);
   const [orders, setOrders] = useState<Order[]>([]);
   const [viewMode, setViewMode] = useState<'home' | 'history'>('home');
-
   const [yearFilter, setYearFilter] = useState<number | 'all'>('all');
   const [monthFilter, setMonthFilter] = useState<number | 'all'>('all');
 
   const db = getFirestore(app);
+  const router = useRouter();
 
   const fetchData = useCallback(async () => {
     try {
@@ -120,18 +122,42 @@ export default function AdminPage() {
         <Toolbar />
 
         {viewMode === 'home' && (
-          <Card sx={{ mb: 4 }}>
-            <CardContent>
-              <Typography variant="h6">総量</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                現在の総量: {totalKg} kg / 最大許容量: {MAX_KG} kg
-              </Typography>
-              <LinearProgress variant="determinate" value={percentage} />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                在庫率：{percentage.toFixed(1)}%
-              </Typography>
-            </CardContent>
-          </Card>
+          <>
+            <Card sx={{ mb: 4 }}>
+              <CardContent>
+                <Typography variant="h6">総量</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  現在の総量: {totalKg} kg / 最大許容量: {MAX_KG} kg
+                </Typography>
+                <LinearProgress variant="determinate" value={percentage} />
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  在庫率：{percentage.toFixed(1)}%
+                </Typography>
+              </CardContent>
+            </Card>
+
+            {/* 注文ページボタン */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                startIcon={<ShoppingCartIcon />}
+                onClick={() => router.push('/order')}
+                sx={{
+                  borderRadius: '50px',
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  textTransform: 'none',
+                  boxShadow: '0px 3px 6px rgba(0,0,0,0.2)',
+                  '&:hover': { boxShadow: '0px 5px 10px rgba(0,0,0,0.25)' },
+                }}
+              >
+                注文ページへ
+              </Button>
+            </Box>
+          </>
         )}
 
         {viewMode === 'history' && (
@@ -165,7 +191,7 @@ export default function AdminPage() {
                       ))}
                     </Select>
                   </FormControl>
-                    
+
                   <FormControl size="small">
                     <InputLabel>月</InputLabel>
                     <Select
@@ -175,12 +201,12 @@ export default function AdminPage() {
                     >
                       <MenuItem value="all">すべて</MenuItem>
                       {[...Array(12)].map((_, i) => (
-                        <MenuItem key={i+1} value={i+1}>{i+1}月</MenuItem>
+                        <MenuItem key={i + 1} value={i + 1}>{i + 1}月</MenuItem>
                       ))}
                     </Select>
                   </FormControl>
                 </Box>
-                    
+
                 {/* 合計情報 */}
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   {[
@@ -196,7 +222,7 @@ export default function AdminPage() {
                       label: '総合計kg',
                       value:
                         (filteredOrders.reduce((sum, o) => sum + (o.polishedKg || 0), 0) +
-                         filteredOrders.reduce((sum, o) => sum + (o.brownKg || 0), 0)) + 'kg',
+                          filteredOrders.reduce((sum, o) => sum + (o.brownKg || 0), 0)) + 'kg',
                     },
                     {
                       label: '総合計金額',
@@ -219,7 +245,7 @@ export default function AdminPage() {
                         px: 1.2,
                         bgcolor: '#f5f5f5',
                         borderRadius: 1.5,
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+                        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.08)',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -227,7 +253,7 @@ export default function AdminPage() {
                       }}
                     >
                       <Typography variant="caption" sx={{ color: '#555', fontSize: '0.75rem' }}>{item.label}</Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#222', fontSize: '1.05rem' }}>{item.value}</Typography>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#080808', fontSize: '1.05rem' }}>{item.value}</Typography>
                     </Box>
                   ))}
                 </Box>
@@ -235,7 +261,7 @@ export default function AdminPage() {
 
               {/* 表 */}
               <TableContainer component={Paper}>
-                <Table size="small">
+                <Table size="small" sx={{ '& td, & th': { fontSize: '1rem' } }}>
                   <TableHead>
                     <TableRow>
                       <TableCell>日付</TableCell>
@@ -262,7 +288,6 @@ export default function AdminPage() {
                   </TableBody>
                 </Table>
               </TableContainer>
-
             </CardContent>
           </Card>
         )}
