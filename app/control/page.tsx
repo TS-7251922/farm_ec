@@ -106,6 +106,7 @@ export default function AdminPage() {
   fontWeight={700}
   sx={{
     color: '#080808',
+    fontWeight: 550,
     fontFamily: '"Shippori Mincho", serif',
     letterSpacing: 2,
     textShadow: '1px 1px 3px rgba(0,0,0,0.2)',
