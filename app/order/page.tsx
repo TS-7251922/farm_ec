@@ -9,6 +9,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
+import 'dayjs/locale/ja';
+import { jaJP } from '@mui/x-date-pickers/locales';
 
 export default function OrderPage() {
   const router = useRouter();
@@ -88,10 +90,14 @@ export default function OrderPage() {
         {/* 日付 */}
         <div className="info_item">
           <h2 className="info_title">取引日</h2>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <LocalizationProvider 
+            dateAdapter={AdapterDayjs} 
+            adapterLocale="ja" 
+            localeText={jaJP.components.MuiLocalizationProvider.defaultProps.localeText}
+          >
             <DatePicker
-              label="日付"
-              format="YYYY-MM-DD"
+              label=""
+              format="YYYY年MM月DD日"
               value={dayjs(order.date)}
               onChange={(newDate) =>
                 setOrder({
@@ -99,6 +105,11 @@ export default function OrderPage() {
                   date: newDate ? newDate.format('YYYY-MM-DD') : '',
                 })
               }
+              slotProps={{
+                textField: {
+                  variant: 'outlined',
+                },
+              }}
             />
           </LocalizationProvider>
         </div>

@@ -101,7 +101,19 @@ export default function AdminPage() {
       >
         <Toolbar />
         <Box sx={{ px: 2, py: 1 }}>
-          <Typography variant="h6" fontWeight="bold">祖父の蔵</Typography>
+          <Typography
+  variant="h4"
+  fontWeight={700}
+  sx={{
+    color: '#080808',
+    fontFamily: '"Shippori Mincho", serif',
+    letterSpacing: 2,
+    textShadow: '1px 1px 3px rgba(0,0,0,0.2)',
+  }}
+>
+  祖父の蔵
+</Typography>
+
         </Box>
         <Box sx={{ overflow: 'auto' }}>
           <List>
