@@ -37,7 +37,7 @@ export default function ConfirmPage() {
       polishedCount: Number(parsedOrder.polishedCount) || 0,
       brownKg: Number(parsedOrder.brownKg) || 0,
       brownCount: Number(parsedOrder.brownCount) || 0,
-      amount: 0,
+      amount: Number(parsedOrder.amount) ?? 0,
       createdAt: new Date(),
     };
     setOrder(safeOrder);

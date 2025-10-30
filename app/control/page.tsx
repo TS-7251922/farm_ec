@@ -7,6 +7,13 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Select, MenuItem, FormControl, InputLabel, Button
 } from '@mui/material';
+
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import { deleteDoc, doc } from 'firebase/firestore';
+
+
 import HomeIcon from '@mui/icons-material/Home';
 import HistoryIcon from '@mui/icons-material/History';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -15,6 +22,8 @@ import { useRouter } from 'next/navigation';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 import dayjs from 'dayjs';
+
+
 
 const drawerWidth = 240;
 const MAX_KG = 7000;
@@ -90,6 +99,20 @@ export default function AdminPage() {
   const getBrownAmount = (order: Order) => order.brownKg * order.brownCount * 500;
   const getTotalAmount = (order: Order) => getPolishedAmount(order) + getBrownAmount(order);
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('この取引を削除してもよろしいですか？')) return;
+
+    try {
+      await deleteDoc(doc(db, 'orders', id));
+      alert('削除しました');
+      fetchData(); // 更新
+    } catch (error) {
+      console.error('削除エラー:', error);
+      alert('削除に失敗しました');
+    }
+  };
+
+
   if (!mounted) return null;
 
   return (
@@ -102,19 +125,19 @@ export default function AdminPage() {
         <Toolbar />
         <Box sx={{ px: 2, py: 1 }}>
           <Typography
-  variant="h4"
-  fontWeight={700}
-  sx={{
-    color: '#080808',
-    fontWeight: 550,
-    fontFamily: '"Shippori Mincho", serif',
-    letterSpacing: 2,
-    textShadow: '1px 1px 3px rgba(0,0,0,0.2)',
-  }}
->
-  祖父の蔵
-</Typography>
-
+            variant="h4"
+            fontWeight={700}
+            sx={{
+              color: '#080808',
+              fontWeight: 550,
+              fontFamily: '"Shippori Mincho", serif',
+              letterSpacing: 2,
+              textShadow: '1px 1px 3px rgba(0,0,0,0.2)',
+            }}
+          >
+            祖父の蔵
+          </Typography>
+          
         </Box>
         <Box sx={{ overflow: 'auto' }}>
           <List>
@@ -167,7 +190,7 @@ export default function AdminPage() {
                   '&:hover': { boxShadow: '0px 5px 10px rgba(0,0,0,0.25)' },
                 }}
               >
-                注文ページへ
+                登録ページへ
               </Button>
             </Box>
           </>
@@ -274,7 +297,7 @@ export default function AdminPage() {
 
               {/* 表 */}
               <TableContainer component={Paper}>
-                <Table size="small" sx={{ '& td, & th': { fontSize: '1rem' } }}>
+                <Table size="small" sx={{ '& td, & th': { fontSize: '1.2rem' } }}>
                   <TableHead>
                     <TableRow>
                       <TableCell>日付</TableCell>
@@ -284,21 +307,52 @@ export default function AdminPage() {
                       <TableCell>玄米kg</TableCell>
                       <TableCell>玄米金額</TableCell>
                       <TableCell>合計額</TableCell>
+                      <TableCell>削除</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {filteredOrders.map(order => (
-                      <TableRow key={order.id}>
-                        <TableCell>{dayjs(order.date).format('YYYY年MM月DD日')}</TableCell>
-                        <TableCell>{order.customerName}</TableCell>
-                        <TableCell>{order.polishedKg}kg</TableCell>
-                        <TableCell>{getPolishedAmount(order).toLocaleString()}円</TableCell>
-                        <TableCell>{order.brownKg}kg</TableCell>
-                        <TableCell>{getBrownAmount(order).toLocaleString()}円</TableCell>
-                        <TableCell>{getTotalAmount(order).toLocaleString()}円</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+  {filteredOrders.map(order => (
+    <TableRow key={order.id}>
+      <TableCell>{dayjs(order.date).format('YYYY年MM月DD日')}</TableCell>
+      <TableCell>{order.customerName}</TableCell>
+
+      {/* 精米kg + 個数 */}
+      <TableCell>
+        {order.polishedKg}kg
+        {order.polishedCount > 0 && (
+          <Typography component="span" sx={{ fontSize: '0.75rem', color: '#666', ml: 0.5 }}>
+            ×{order.polishedCount}
+          </Typography>
+        )}
+      </TableCell>
+
+      <TableCell>{getPolishedAmount(order).toLocaleString()}円</TableCell>
+
+      {/* 玄米kg + 個数 */}
+      <TableCell>
+        {order.brownKg}kg
+        {order.brownCount > 0 && (
+          <Typography component="span" sx={{ fontSize: '0.75rem', color: '#666', ml: 0.5 }}>
+            ×{order.brownCount}
+          </Typography>
+        )}
+      </TableCell>
+
+      <TableCell>{getBrownAmount(order).toLocaleString()}円</TableCell>
+      <TableCell>{getTotalAmount(order).toLocaleString()}円</TableCell>
+
+      {/* 削除列：幅を狭める */}
+      <TableCell sx={{ pr: 0 }}>
+        <Tooltip title="削除">
+          <IconButton onClick={() => handleDelete(order.id)} color="error" size="small">
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
+
                 </Table>
               </TableContainer>
             </CardContent>

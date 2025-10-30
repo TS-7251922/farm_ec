@@ -14,6 +14,7 @@ import { jaJP } from '@mui/x-date-pickers/locales';
 
 export default function OrderPage() {
   const router = useRouter();
+
   const [order, setOrder] = useState({
     date: dayjs().format('YYYY-MM-DD'),
     trader: '',
@@ -24,23 +25,44 @@ export default function OrderPage() {
     amount: 0,
   });
 
-  // 金額自動計算（精米は個数ごとに+1000円）
+  const [loaded, setLoaded] = useState(false);
+
+  // ✅ 初回のみ sessionStorage から復元
   useEffect(() => {
+    const savedOrder = sessionStorage.getItem('order');
+    if (savedOrder) {
+      const parsedOrder = JSON.parse(savedOrder);
+      setOrder(parsedOrder);
+    }
+    setLoaded(true);
+  }, []);
+
+  // ✅ 金額自動計算 + sessionStorage への保存
+  useEffect(() => {
+    if (!loaded) return; // 初期化中はスキップ
+
     const polishedKg = Number(order.polishedKg) || 0;
     const polishedCount = Number(order.polishedCount) || 0;
     const brownKg = Number(order.brownKg) || 0;
     const brownCount = Number(order.brownCount) || 0;
 
-    // 精米 = (kg × 個数 × 500) + (個数 × 1000)
     const polishedTotal = polishedKg * polishedCount * 500 + polishedCount * 1000;
-
-    // 玄米 = (kg × 個数 × 500)
     const brownTotal = brownKg * brownCount * 500;
-
     const total = polishedTotal + brownTotal;
 
-    setOrder((prev) => ({ ...prev, amount: total }));
-  }, [order.polishedKg, order.polishedCount, order.brownKg, order.brownCount]);
+    // 金額を更新
+    const updatedOrder = { ...order, amount: total };
+    setOrder(updatedOrder);
+
+    // 保存（無限ループ防止のため、loadedチェック済）
+    sessionStorage.setItem('order', JSON.stringify(updatedOrder));
+  }, [
+    order.polishedKg,
+    order.polishedCount,
+    order.brownKg,
+    order.brownCount,
+    loaded,
+  ]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +76,6 @@ export default function OrderPage() {
     router.push('/order/confirm');
   };
 
-  // kg と 個数の選択肢
   const kgOptions = [10, 30];
   const countOptions = Array.from({ length: 100 }, (_, i) => i);
 
@@ -80,19 +101,19 @@ export default function OrderPage() {
 
       <h2 className="subtitle">取引入力フォーム</h2>
 
-      <form 
-      onSubmit={handleSubmit} 
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') e.preventDefault(); // Enter無効化
-      }}
-      className="on_submit"
+      <form
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.preventDefault(); // Enter無効化
+        }}
+        className="on_submit"
       >
         {/* 日付 */}
         <div className="info_item">
           <h2 className="info_title">取引日</h2>
-          <LocalizationProvider 
-            dateAdapter={AdapterDayjs} 
-            adapterLocale="ja" 
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            adapterLocale="ja"
             localeText={jaJP.components.MuiLocalizationProvider.defaultProps.localeText}
           >
             <DatePicker
@@ -123,8 +144,8 @@ export default function OrderPage() {
               variant="outlined"
               fullWidth
               value={order.trader}
-            onChange={(e) => setOrder({ ...order, trader: e.target.value })}
-            required
+              onChange={(e) => setOrder({ ...order, trader: e.target.value })}
+              required
             />
           </div>
         </div>
