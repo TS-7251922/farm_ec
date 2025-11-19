@@ -27,7 +27,7 @@ export default function OrderPage() {
 
   const [loaded, setLoaded] = useState(false);
 
-  // ✅ 初回のみ sessionStorage から復元
+  // 初回のみ sessionStorage から復元
   useEffect(() => {
     const savedOrder = sessionStorage.getItem('order');
     if (savedOrder) {
@@ -37,7 +37,7 @@ export default function OrderPage() {
     setLoaded(true);
   }, []);
 
-  // ✅ 金額自動計算 + sessionStorage への保存
+  // 金額自動計算 + sessionStorage への保存
   useEffect(() => {
     if (!loaded) return; // 初期化中はスキップ
 
@@ -143,9 +143,19 @@ export default function OrderPage() {
               label="取引者名"
               variant="outlined"
               fullWidth
+              type="text"  
               value={order.trader}
               onChange={(e) => setOrder({ ...order, trader: e.target.value })}
               required
+              error={order.trader.length > 12}
+              helperText={
+                order.trader.length > 12
+                  ? "12文字以内で入力してください"
+                  : `${order.trader.length}/12`
+              }
+              slotProps={{
+                htmlInput: { maxLength: 12 }
+              }}
             />
           </div>
         </div>
@@ -239,7 +249,7 @@ export default function OrderPage() {
               variant="standard"
               fullWidth
               value={`${order.amount.toLocaleString()} 円`}
-              InputProps={{
+              inputProps={{
                 readOnly: true,
                 sx: {
                   '& .MuiInputBase-input': {

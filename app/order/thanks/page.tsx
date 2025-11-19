@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
-import HomeIcon from '@mui/icons-material/Home'; // 🏠 ホームアイコン
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'; // ➕ 追加アイコン
+import HomeIcon from '@mui/icons-material/Home'; // ホームアイコン
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'; // ➕アイコン
 
 type Order = {
   method: 'delivery' | 'pickup';
@@ -63,9 +63,9 @@ export default function ThanksPage() {
         >
           <Link href="/order" passHref>
             <Button
-              variant="outlined"
+              variant="contained"
               color="primary"
-              startIcon={<AddCircleOutlineIcon />} // ← 左に表示
+              startIcon={<AddCircleOutlineIcon />}
               className="back_btn"
             >
               さらに登録する
@@ -74,9 +74,9 @@ export default function ThanksPage() {
 
           <Link href="/control" passHref>
             <Button
-              variant="contained"
+              variant="outlined"
               color="primary"
-              startIcon={<HomeIcon />} // ← 左に表示
+              startIcon={<HomeIcon />}
               className="admin_btn"
             >
               管理者画面に戻る

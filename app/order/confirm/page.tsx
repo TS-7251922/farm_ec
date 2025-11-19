@@ -121,7 +121,7 @@ export default function ConfirmPage() {
       {/* 注文確定ボタン */}
       <div className="submit_btn">
         <Button variant="contained" color="primary" onClick={handleConfirm}>
-          注文を確定する
+          登録を確定する
         </Button>
       </div>
 
