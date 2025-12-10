@@ -16,7 +16,9 @@ import { deleteDoc, doc } from 'firebase/firestore';
 
 import HomeIcon from '@mui/icons-material/Home';
 import HistoryIcon from '@mui/icons-material/History';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import CreateIcon from '@mui/icons-material/Create';
+import StarIcon from '@mui/icons-material/Star';
+
 import { useRouter } from 'next/navigation';
 
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
@@ -178,7 +180,7 @@ export default function AdminPage() {
                 variant="contained"
                 color="primary"
                 size="large"
-                startIcon={<ShoppingCartIcon />}
+                startIcon={<CreateIcon />}
                 onClick={() => router.push('/order')}
                 sx={{
                   borderRadius: '50px',
@@ -190,7 +192,29 @@ export default function AdminPage() {
                   '&:hover': { boxShadow: '0px 5px 10px rgba(0,0,0,0.25)' },
                 }}
               >
-                登録ページへ
+                取引入力
+              </Button>
+            </Box>
+
+            {/* 特注ページボタン */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+              <Button
+                variant="contained"
+                color="warning"
+                size="large"
+                startIcon={<StarIcon />}
+                onClick={() => router.push('/special-order')}
+                sx={{
+                  borderRadius: '50px',
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1rem',
+                  textTransform: 'none',
+                  boxShadow: '0px 3px 6px rgba(0,0,0,0.2)',
+                  '&:hover': { boxShadow: '0px 5px 10px rgba(0,0,0,0.25)' },
+                }}
+              >
+                もち米入力
               </Button>
             </Box>
           </>
@@ -248,29 +272,44 @@ export default function AdminPage() {
                   {[
                     {
                       label: '合計精米kg',
-                      value: filteredOrders.reduce((sum, o) => sum + (o.polishedKg || 0), 0) + 'kg',
+                      value:
+                        filteredOrders.reduce(
+                          (sum, o) => sum + (o.polishedKg || 0) * (o.polishedCount || 0),
+                          0
+                        ) + 'kg',
                     },
                     {
                       label: '合計玄米kg',
-                      value: filteredOrders.reduce((sum, o) => sum + (o.brownKg || 0), 0) + 'kg',
+                      value:
+                        filteredOrders.reduce(
+                          (sum, o) => sum + (o.brownKg || 0) * (o.brownCount || 0),
+                          0
+                        ) + 'kg',
                     },
                     {
                       label: '総合計kg',
                       value:
-                        (filteredOrders.reduce((sum, o) => sum + (o.polishedKg || 0), 0) +
-                          filteredOrders.reduce((sum, o) => sum + (o.brownKg || 0), 0)) + 'kg',
+                        filteredOrders.reduce(
+                          (sum, o) =>
+                            sum +
+                            (o.polishedKg || 0) * (o.polishedCount || 0) +
+                            (o.brownKg || 0) * (o.brownCount || 0),
+                          0
+                        ) + 'kg',
                     },
                     {
                       label: '総合計金額',
                       value:
                         filteredOrders
-                          .reduce(
-                            (sum, o) =>
-                              sum +
-                              ((o.polishedKg * o.polishedCount * 500 + o.polishedCount * 1000) +
-                                (o.brownKg * o.brownCount * 500)),
-                            0
-                          )
+                          .reduce((sum, o) => {
+                            const polishedTotal =
+                              (o.polishedKg || 0) * (o.polishedCount || 0) * 500 +
+                              (o.polishedCount || 0) * 1000;
+                            const brownTotal =
+                              (o.brownKg || 0) * (o.brownCount || 0) * 500;
+                          
+                            return sum + polishedTotal + brownTotal;
+                          }, 0)
                           .toLocaleString() + '円',
                     },
                   ].map((item, i) => (
@@ -288,12 +327,26 @@ export default function AdminPage() {
                         minWidth: 130,
                       }}
                     >
-                      <Typography variant="caption" sx={{ color: '#555', fontSize: '0.75rem' }}>{item.label}</Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#080808', fontSize: '1.05rem' }}>{item.value}</Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: '#555', fontSize: '0.75rem' }}
+                      >
+                        {item.label}
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 800,
+                          color: '#080808',
+                          fontSize: '1.05rem',
+                        }}
+                      >
+                        {item.value}
+                      </Typography>
                     </Box>
                   ))}
                 </Box>
-              </Box>
+              </Box>  
 
               {/* 表 */}
               <TableContainer component={Paper}>
@@ -311,48 +364,47 @@ export default function AdminPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-  {filteredOrders.map(order => (
-    <TableRow key={order.id}>
-      <TableCell>{dayjs(order.date).format('YYYY年MM月DD日')}</TableCell>
-      <TableCell>{order.customerName}</TableCell>
-
-      {/* 精米kg + 個数 */}
-      <TableCell>
-        {order.polishedKg}kg
-        {order.polishedCount > 0 && (
-          <Typography component="span" sx={{ fontSize: '0.75rem', color: '#666', ml: 0.5 }}>
-            ×{order.polishedCount}
-          </Typography>
-        )}
-      </TableCell>
-
-      <TableCell>{getPolishedAmount(order).toLocaleString()}円</TableCell>
-
-      {/* 玄米kg + 個数 */}
-      <TableCell>
-        {order.brownKg}kg
-        {order.brownCount > 0 && (
-          <Typography component="span" sx={{ fontSize: '0.75rem', color: '#666', ml: 0.5 }}>
-            ×{order.brownCount}
-          </Typography>
-        )}
-      </TableCell>
-
-      <TableCell>{getBrownAmount(order).toLocaleString()}円</TableCell>
-      <TableCell>{getTotalAmount(order).toLocaleString()}円</TableCell>
-
-      {/* 削除列：幅を狭める */}
-      <TableCell sx={{ pr: 0 }}>
-        <Tooltip title="削除">
-          <IconButton onClick={() => handleDelete(order.id)} color="error" size="small">
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-      </TableCell>
-    </TableRow>
-  ))}
-</TableBody>
-
+                    {filteredOrders.map(order => (
+                      <TableRow key={order.id}>
+                        <TableCell>{dayjs(order.date).format('YYYY年MM月DD日')}</TableCell>
+                        <TableCell>{order.customerName}</TableCell>
+                    
+                        {/* 精米kg + 個数 */}
+                        <TableCell>
+                          {order.polishedKg}kg
+                          {order.polishedCount > 0 && (
+                            <Typography component="span" sx={{ fontSize: '0.75rem', color: '#666', ml: 0.5 }}>
+                              ×{order.polishedCount}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        
+                        <TableCell>{getPolishedAmount(order).toLocaleString()}円</TableCell>
+                        
+                        {/* 玄米kg + 個数 */}
+                        <TableCell>
+                          {order.brownKg}kg
+                          {order.brownCount > 0 && (
+                            <Typography component="span" sx={{ fontSize: '0.75rem', color: '#666', ml: 0.5 }}>
+                              ×{order.brownCount}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        
+                        <TableCell>{getBrownAmount(order).toLocaleString()}円</TableCell>
+                        <TableCell>{getTotalAmount(order).toLocaleString()}円</TableCell>
+                        
+                        {/* 削除列：幅を狭める */}
+                        <TableCell sx={{ pr: 0 }}>
+                          <Tooltip title="削除">
+                            <IconButton onClick={() => handleDelete(order.id)} color="error" size="small">
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
                 </Table>
               </TableContainer>
             </CardContent>
