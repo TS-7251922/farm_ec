@@ -11,6 +11,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/ja';
 import { jaJP } from '@mui/x-date-pickers/locales';
 import InputAdornment from "@mui/material/InputAdornment";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 export default function OrderPage() {
   const router = useRouter();
@@ -118,15 +119,51 @@ export default function OrderPage() {
         {/* 日付 */}
         <div className="info_item">
           <h2 className="info_title">取引日</h2>
-          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ja" localeText={jaJP.components.MuiLocalizationProvider.defaultProps.localeText}>
-            <DatePicker
-              label=""
-              format="YYYY年MM月DD日"
-              value={dayjs(order.date)}
-              onChange={(newDate) => setOrder({ ...order, date: newDate ? newDate.format('YYYY-MM-DD') : '' })}
-            />
+
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            adapterLocale="ja"
+            localeText={jaJP.components.MuiLocalizationProvider.defaultProps.localeText}
+          >
+            <div style={{ width: "240px", margin: "0 auto" }}> {/* ← 横幅を狭くする */}
+              <DatePicker
+                label=""
+                format="YYYY年MM月DD日"
+                value={dayjs(order.date)}
+                onChange={(newDate) =>
+                  setOrder({
+                    ...order,
+                    date: newDate ? newDate.format("YYYY-MM-DD") : "",
+                  })
+                }
+                slots={{
+                  openPickerIcon: CalendarMonthIcon,
+                }}
+                slotProps={{
+                  openPickerIcon: {
+                    sx: {
+                      fontSize: "2.0rem",
+                      color: "#555",
+                      cursor: "pointer",
+                    },
+                  },
+                  textField: {
+                    variant: "standard",
+                    InputProps: {
+                      sx: {
+                        "& .MuiSvgIcon-root": {
+                          fontSize: "2.0rem",
+                        },
+                      },
+                    },
+                  },
+                }}
+              />
+            </div>
           </LocalizationProvider>
         </div>
+
+
 
         {/* 取引者 */}
         <div className="info_item">
