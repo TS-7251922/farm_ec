@@ -25,6 +25,9 @@ import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 import dayjs from 'dayjs';
 
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+
 
 
 const drawerWidth = 240;
@@ -34,11 +37,18 @@ type Order = {
   id: string;
   date: any;
   customerName: string;
+
   polishedKg: number;
   polishedCount: number;
+  polishedAmount: number; // ← 追加
+
   brownKg: number;
   brownCount: number;
+  brownAmount: number;    // ← 追加
+
+  totalAmount: number;    // ← 合計金額
 };
+
 
 export default function AdminPage() {
   const [mounted, setMounted] = useState(false);
@@ -51,6 +61,8 @@ export default function AdminPage() {
 
   const db = getFirestore(app);
   const router = useRouter();
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -71,10 +83,16 @@ export default function AdminPage() {
           id: docSnap.id,
           date: data.date ?? data.createdAt ?? new Date(),
           customerName: data.trader ?? '名無し',
+
           polishedKg,
           polishedCount,
+          polishedAmount: Number(data.polishedAmount ?? 0),
+
           brownKg,
           brownCount,
+          brownAmount: Number(data.brownAmount ?? 0),
+
+          totalAmount: Number(data.amount ?? 0),
         });
       });
 
@@ -96,23 +114,20 @@ export default function AdminPage() {
     return true;
   });
 
-  const getPolishedAmount = (order: Order) =>
-    (order.polishedKg * order.polishedCount * 500) + (order.polishedCount * 1000);
-  const getBrownAmount = (order: Order) => order.brownKg * order.brownCount * 500;
-  const getTotalAmount = (order: Order) => getPolishedAmount(order) + getBrownAmount(order);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('この取引を削除してもよろしいですか？')) return;
+  if (!confirm('この取引を削除してもよろしいですか？')) return;
 
-    try {
-      await deleteDoc(doc(db, 'orders', id));
-      alert('削除しました');
-      fetchData(); // 更新
-    } catch (error) {
-      console.error('削除エラー:', error);
-      alert('削除に失敗しました');
-    }
-  };
+  try {
+    await deleteDoc(doc(db, 'orders', id));
+    setSnackbarOpen(true);   // ← 追加
+    fetchData();
+  } catch (error) {
+    console.error('削除エラー:', error);
+    alert('削除に失敗しました'); // ← 失敗時はOK
+  }
+};
+
 
 
   if (!mounted) return null;
@@ -373,26 +388,43 @@ export default function AdminPage() {
                         <TableCell>
                           {order.polishedKg}kg
                           {order.polishedCount > 0 && (
-                            <Typography component="span" sx={{ fontSize: '0.75rem', color: '#666', ml: 0.5 }}>
+                            <Typography
+                              component="span"
+                              sx={{ fontSize: '0.75rem', color: '#666', ml: 0.5 }}
+                            >
                               ×{order.polishedCount}
                             </Typography>
                           )}
                         </TableCell>
                         
-                        <TableCell>{getPolishedAmount(order).toLocaleString()}円</TableCell>
+                        {/* 精米 金額（DB） */}
+                        <TableCell>
+                          {(order.polishedAmount ?? 0).toLocaleString()}円
+                        </TableCell>
                         
                         {/* 玄米kg + 個数 */}
                         <TableCell>
                           {order.brownKg}kg
                           {order.brownCount > 0 && (
-                            <Typography component="span" sx={{ fontSize: '0.75rem', color: '#666', ml: 0.5 }}>
+                            <Typography
+                              component="span"
+                              sx={{ fontSize: '0.75rem', color: '#666', ml: 0.5 }}
+                            >
                               ×{order.brownCount}
                             </Typography>
                           )}
                         </TableCell>
                         
-                        <TableCell>{getBrownAmount(order).toLocaleString()}円</TableCell>
-                        <TableCell>{getTotalAmount(order).toLocaleString()}円</TableCell>
+                        {/* 玄米 金額（DB） */}
+                        <TableCell>
+                          {(order.brownAmount ?? 0).toLocaleString()}円
+                        </TableCell>
+                        
+                        {/* 合計金額（DB） */}
+                        <TableCell>
+                          {(order.totalAmount ?? 0).toLocaleString()}円
+                        </TableCell>
+
                         
                         {/* 削除列：幅を狭める */}
                         <TableCell sx={{ pr: 0 }}>
@@ -410,7 +442,23 @@ export default function AdminPage() {
             </CardContent>
           </Card>
         )}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={2000}
+          onClose={() => setSnackbarOpen(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={() => setSnackbarOpen(false)}
+            severity="success"
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            削除しました
+          </Alert>
+        </Snackbar>
       </Box>
     </Box>
+    
   );
 }

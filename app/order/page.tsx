@@ -13,28 +13,39 @@ import { jaJP } from '@mui/x-date-pickers/locales';
 import InputAdornment from "@mui/material/InputAdornment";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
-export default function OrderPage() {
-  const router = useRouter();
+  export default function OrderPage() {
+    const router = useRouter();
 
-  type Order = {
+    type Order = {
     date: string;
     trader: string;
+
     polishedKg: string;
     polishedCount: string;
+    polishedAmount: string; // ← 追加
+
     brownKg: string;
     brownCount: string;
-    amount: string;
+    brownAmount: string;    // ← 追加
+
+    amount: string;         // 合計金額（表示用）
   };
 
   const [order, setOrder] = useState<Order>({
     date: dayjs().format('YYYY-MM-DD'),
     trader: '',
+
     polishedKg: '',
     polishedCount: '',
+    polishedAmount: '',
+
     brownKg: '',
     brownCount: '',
+    brownAmount: '',
+
     amount: '',
   });
+
 
   const [loaded, setLoaded] = useState(false);
 
@@ -82,15 +93,32 @@ export default function OrderPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (!order.date || !order.trader) {
       alert('日付と取引者は必須です。');
       return;
     }
-
-    sessionStorage.setItem('order', JSON.stringify(order));
+  
+    const polishedAmount = Number(order.polishedAmount) || 0;
+    const brownAmount = Number(order.brownAmount) || 0;
+  
+    const totalAmount = polishedAmount + brownAmount;
+  
+    const submitOrder = {
+      ...order,
+      amount: String(totalAmount), // ← 合計を確定値として上書き
+    };
+  
+    sessionStorage.setItem('order', JSON.stringify(submitOrder));
     router.push('/order/confirm');
   };
+
+
+  // 合計金額計算
+  const totalAmount =
+  (Number(order.polishedAmount) || 0) +
+  (Number(order.brownAmount) || 0);
+
 
   return (
     <main className="main_page">
@@ -191,7 +219,6 @@ export default function OrderPage() {
           </div>
         </div>
 
-
         {/* 精米 */}
         <div className="info_item">
           <h2 className="info_title">精米</h2>
@@ -200,17 +227,43 @@ export default function OrderPage() {
               label="精米 (kg)"
               type="text"
               value={order.polishedKg}
-              onChange={(e) => setOrder({ ...order, polishedKg: numericInput(e.target.value) })}
+              onChange={(e) =>
+                setOrder({ ...order, polishedKg: numericInput(e.target.value) })
+              }
             />
+
             <TextField
               label="精米 (個数)"
               type="text"
               value={order.polishedCount}
-              onChange={(e) => setOrder({ ...order, polishedCount: numericInput(e.target.value) })}
+              onChange={(e) =>
+                setOrder({ ...order, polishedCount: numericInput(e.target.value) })
+              }
+            />
+
+            <TextField
+              label="精米 金額"
+              type="text"
+              value={
+                order.polishedAmount
+                  ? Number(order.polishedAmount).toLocaleString()
+                  : ""
+              }
+              onChange={(e) => {
+                const raw = e.target.value.replace(/,/g, "");
+                setOrder({ ...order, polishedAmount: numericInput(raw) });
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    円
+                  </InputAdornment>
+                ),
+              }}
             />
           </div>
         </div>
-
+            
         {/* 玄米 */}
         <div className="info_item">
           <h2 className="info_title">玄米</h2>
@@ -219,31 +272,56 @@ export default function OrderPage() {
               label="玄米 (kg)"
               type="text"
               value={order.brownKg}
-              onChange={(e) => setOrder({ ...order, brownKg: numericInput(e.target.value) })}
+              onChange={(e) =>
+                setOrder({ ...order, brownKg: numericInput(e.target.value) })
+              }
             />
+
             <TextField
               label="玄米 (個数)"
               type="text"
               value={order.brownCount}
-              onChange={(e) => setOrder({ ...order, brownCount: numericInput(e.target.value) })}
+              onChange={(e) =>
+                setOrder({ ...order, brownCount: numericInput(e.target.value) })
+              }
+            />
+
+            <TextField
+              label="玄米 金額"
+              type="text"
+              value={
+                order.brownAmount
+                  ? Number(order.brownAmount).toLocaleString()
+                  : ""
+              }
+              onChange={(e) => {
+                const raw = e.target.value.replace(/,/g, "");
+                setOrder({ ...order, brownAmount: numericInput(raw) });
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    円
+                  </InputAdornment>
+                ),
+              }}
             />
           </div>
         </div>
-
-        {/* 金額 */}
+            
+        
+        {/* 合計金額（自動計算・表示のみ） */}
         <div className="info_item">
-          <h2 className="info_title" style={{ textAlign: "center" }}>合計金額</h2>
+          <h2 className="info_title" style={{ textAlign: "center" }}>
+            合計金額
+          </h2>
 
           <div className="info_body">
             <TextField
               variant="standard"
               type="text"
-              value={order.amount ? Number(order.amount).toLocaleString() : ""}
-              onChange={(e) => {
-                // 入力から数字以外を除去
-                const raw = e.target.value.replace(/,/g, "");
-                setOrder({ ...order, amount: numericInput(raw) });
-              }}
+              value={totalAmount.toLocaleString()}
+              disabled   // ← 手入力不可
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end" sx={{ fontSize: "1.2rem" }}>
@@ -258,20 +336,16 @@ export default function OrderPage() {
                   textAlign: "center",
                   fontSize: "1.2rem",
                   padding: "4px 0 0 22px",
+                  WebkitTextFillColor: "#000", // disabledでも黒表示
                 },
                 "& .MuiInput-underline:before": {
                   borderBottomWidth: "1.5px",
-                },
-                "& .MuiInput-underline:hover:before": {
-                  borderBottomWidth: "2px",
-                },
-                "& .MuiInput-underline:after": {
-                  borderBottomColor: "#333",
                 },
               }}
             />
           </div>
         </div>
+
 
         {/* 送信 */}
         <div className="submit_btn">

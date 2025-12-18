@@ -10,13 +10,19 @@ import dayjs from 'dayjs';
 type Order = {
   date: string;
   trader: string;
+
   polishedKg: number;
   polishedCount: number;
+  polishedAmount: number; // ← 追加
+
   brownKg: number;
   brownCount: number;
-  amount: number;
+  brownAmount: number; // ← 追加
+
+  amount: number; // 合計
   createdAt?: Date;
 };
+
 
 export default function ConfirmPage() {
   const router = useRouter();
@@ -28,29 +34,44 @@ export default function ConfirmPage() {
       router.push('/order');
       return;
     }
+
     const parsedOrder = JSON.parse(savedOrder);
 
-    // 入力値が空の場合は0に変換
+    // 入力値が空の場合は 0 に変換
     const safeOrder: Order = {
       ...parsedOrder,
+
       polishedKg: Number(parsedOrder.polishedKg) || 0,
       polishedCount: Number(parsedOrder.polishedCount) || 0,
+      polishedAmount: Number(parsedOrder.polishedAmount) || 0, // ★追加
+
       brownKg: Number(parsedOrder.brownKg) || 0,
       brownCount: Number(parsedOrder.brownCount) || 0,
-      amount: Number(parsedOrder.amount) ?? 0,
+      brownAmount: Number(parsedOrder.brownAmount) || 0, // ★追加
+
+      amount: Number(parsedOrder.amount) || 0,
       createdAt: new Date(),
     };
+
     setOrder(safeOrder);
   }, [router]);
 
   if (!order) return <p>注文情報を読み込み中...</p>;
 
-  // 精米・玄米の合計金額計算
-  const polishedTotal = order.polishedKg * order.polishedCount * 500 + order.polishedCount * 1000;
-  const brownTotal = order.brownKg * order.brownCount * 500;
-  const total = polishedTotal + brownTotal;
+  // DB保存
+  const orderToSave = {
+    ...order,
 
-  const orderToSave = { ...order, amount: total };
+    // 個々の金額(数値化)
+    polishedAmount: Number(order.polishedAmount) || 0,
+    brownAmount: Number(order.brownAmount) || 0,
+
+    // 合計金額
+    amount: Number(order.amount) || 0,
+
+    createdAt: new Date(),
+  };
+
 
   const handleConfirm = async () => {
     try {
@@ -90,7 +111,9 @@ export default function ConfirmPage() {
           <h2>取引情報</h2>
           <div className="info-row">
             <span className="form_label">取引日：</span>
-            <span className="value">{dayjs(order.date).format('YYYY年MM月D日')}</span>
+            <span className="value">
+              {dayjs(order.date).format('YYYY年MM月D日')}
+            </span>
           </div>
           <div className="info-row">
             <span className="form_label">取引者：</span>
@@ -100,23 +123,46 @@ export default function ConfirmPage() {
 
         <section className="order-section">
           <h2>商品情報</h2>
+
+          {/* 精米 */}
           <div className="info-row">
             <span className="form_label">精米：</span>
-            <span className="value">{order.polishedKg || 0}kg × {order.polishedCount || 0}個</span>
+            <span className="value">
+              {order.polishedKg || 0}kg × {order.polishedCount || 0}個
+            </span>
           </div>
           <div className="info-row">
+            <span className="form_label">精米金額：</span>
+            <span className="value">
+              {Number(order.polishedAmount || 0).toLocaleString()}円
+            </span>
+          </div>
+
+          {/* 玄米 */}
+          <div className="info-row">
             <span className="form_label">玄米：</span>
-            <span className="value">{order.brownKg || 0}kg × {order.brownCount || 0}個</span>
+            <span className="value">
+              {order.brownKg || 0}kg × {order.brownCount || 0}個
+            </span>
+          </div>
+          <div className="info-row">
+            <span className="form_label">玄米金額：</span>
+            <span className="value">
+              {Number(order.brownAmount || 0).toLocaleString()}円
+            </span>
           </div>
         </section>
 
         <section className="order-section">
           <div className="info-row total-amount">
             <span className="form_label">合計金額：</span>
-            <span className="value">{total.toLocaleString()}円</span>
+            <span className="value">
+              {Number(order.amount || 0).toLocaleString()}円
+            </span>
           </div>
         </section>
       </div>
+
 
       {/* 注文確定ボタン */}
       <div className="submit_btn">
